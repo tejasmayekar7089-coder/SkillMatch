@@ -1,0 +1,90 @@
+const TOKEN_STORAGE_KEY = 'skillmatch_token';
+const USER_STORAGE_KEY = 'skillmatch_user';
+
+export const API_BASE_URL =
+  (import.meta as any).env?.VITE_API_BASE_URL || '/api';
+
+export const tokenStorage = {
+  get: (): string | null => {
+    try {
+      return localStorage.getItem(TOKEN_STORAGE_KEY);
+    } catch {
+      return null;
+    }
+  },
+  set: (token: string): void => {
+    try {
+      localStorage.setItem(TOKEN_STORAGE_KEY, token);
+    } catch {}
+  },
+  remove: (): void => {
+    try {
+      localStorage.removeItem(TOKEN_STORAGE_KEY);
+      localStorage.removeItem(USER_STORAGE_KEY);
+    } catch {}
+  },
+};
+
+export const userStorage = {
+  get: (): any | null => {
+    try {
+      const stored = localStorage.getItem(USER_STORAGE_KEY);
+      return stored ? JSON.parse(stored) : null;
+    } catch {
+      return null;
+    }
+  },
+  set: (user: any): void => {
+    try {
+      localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(user));
+    } catch {}
+  },
+};
+
+export async function apiFetch<T>(
+  endpoint: string,
+  options: RequestInit = {}
+): Promise<T> {
+  const url = endpoint.startsWith('http')
+    ? endpoint
+    : `${API_BASE_URL}${endpoint.startsWith('/') ? '' : '/'}${endpoint}`;
+
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+    ...(options.headers as Record<string, string>),
+  };
+
+  const token = tokenStorage.get();
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+
+  const response = await fetch(url, {
+    ...options,
+    headers,
+  });
+
+  if (!response.ok) {
+    let errorDetail = `Request failed with status ${response.status}`;
+    try {
+      const errorJson = await response.json();
+      if (typeof errorJson.detail === 'string') {
+        errorDetail = errorJson.detail;
+      } else if (Array.isArray(errorJson.detail)) {
+        errorDetail = errorJson.detail.map((d: any) => d.msg || JSON.stringify(d)).join(', ');
+      } else if (errorJson.message) {
+        errorDetail = errorJson.message;
+      }
+    } catch {
+      // Use fallback errorDetail
+    }
+    throw new Error(errorDetail);
+  }
+
+  // Handle 204 No Content
+  if (response.status === 204) {
+    return {} as T;
+  }
+
+  return response.json();
+}

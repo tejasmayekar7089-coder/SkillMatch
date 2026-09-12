@@ -1,0 +1,41 @@
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Opportunity {
+  id                     String   @id @default(cuid())
+  title                  String
+  organization           String
+  organizationLogoText   String
+  organizationSubtext    String?
+  category               String
+  categoryLabel          String
+  domain                 String
+  location               String
+  mode                   String
+  compensation           String?
+  deadline               String
+  deadlineDaysRemaining  Int?
+  postedAgo              String
+  duration               String?
+  cohortSize             String?
+  description            String
+  keyResponsibilities    String[]
+  requirements           Json
+  stages                 Json?
+  matchScore             Int
+  matchBreakdown         Json
+  matchedSkills          String[]
+  missingSkills          String[]
+  verified               Boolean
+  eligibilityStatus      String
+  eligibilityNote        String
+  verifiedBy             String?
+  featured               Boolean?
+  imageBanner            String?
+}

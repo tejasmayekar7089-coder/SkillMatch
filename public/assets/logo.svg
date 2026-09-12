@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 48" fill="none">
+  <g transform="translate(4, 6)">
+    <!-- Interlocking geometric opportunity and skill match emblem -->
+    <rect x="0" y="4" width="22" height="22" rx="6" fill="#2563EB" />
+    <path d="M7 15L11 19L19 10" stroke="#FFFFFF" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+    <rect x="14" y="10" width="22" height="22" rx="6" fill="#0F172A" />
+    <circle cx="25" cy="21" r="3.5" fill="#38BDF8" />
+  </g>
+  <text x="50" y="32" font-family="Inter, -apple-system, sans-serif" font-size="22" font-weight="800" fill="#0F172A" letter-spacing="-0.5px">Skill<tspan fill="#2563EB">Match</tspan></text>
+</svg>
