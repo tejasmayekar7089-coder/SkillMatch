@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { apiFetch } from '../../services/apiClient';
+import { apiFetch, API_BASE_URL } from '../../services/apiClient';
 
 export const AdminSettingsPage: React.FC = () => {
   const [testing, setTesting] = useState(false);
@@ -10,8 +10,8 @@ export const AdminSettingsPage: React.FC = () => {
     setTestResult(null);
     try {
       const res = await apiFetch<any>('/health');
-      setTestResult(`Backend Online: status='${res.status}', database='${res.database}', version='${res.version}'`);
-      alert(`Connection Verified!\n\nStatus: ${res.status}\nDatabase: ${res.database}\nVersion: ${res.version}`);
+      setTestResult(`Backend Online: status='${res.status || 'ok'}'`);
+      alert(`Connection Verified!\n\nStatus: ${res.status || 'ok'}\nEnvironment: ${res.environment || 'production'}`);
     } catch (err: any) {
       setTestResult(`Connection Failed: ${err.message}`);
       alert(`Connection Failed: ${err.message}`);
@@ -34,7 +34,7 @@ export const AdminSettingsPage: React.FC = () => {
             <label className="font-label-sm text-on-surface font-medium">FastAPI Backend Endpoint URL</label>
             <input
               type="text"
-              defaultValue="http://127.0.0.1:8000/api"
+              defaultValue={API_BASE_URL}
               className="w-full h-10 px-3 rounded-xl bg-surface-container-low border border-outline-variant/40 font-body-sm text-on-surface"
             />
           </div>

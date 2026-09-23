@@ -176,7 +176,8 @@ def process_student_query(
     if profile and profile.skills:
         for ps in profile.skills:
             if ps.skill:
-                verified_skills.append(f"{ps.skill.name} ({ps.proficiency_level or 'Proficient'})")
+                prof_val = getattr(ps, "proficiency", None) or getattr(ps, "proficiency_level", None) or "Proficient"
+                verified_skills.append(f"{ps.skill.name} ({prof_val})")
 
     all_opportunities = db.query(Opportunity).filter(Opportunity.verified == True).all()
     if not all_opportunities:
@@ -306,11 +307,11 @@ INSTRUCTIONS:
 
     matched_dept = None
     for dept, terms in dept_keywords.items():
-        if any(t in q_lower for t in terms):
+        if any(re.search(r"\b" + re.escape(t) + r"\b", q_lower) for t in terms):
             matched_dept = dept
             break
 
-    if matched_dept and any(k in q_lower for k in ["opportunity", "opportunities", "internship", "internships", "jobs", "hackathon", "project", "courses", "find", "show me"]):
+    if matched_dept and any(re.search(r"\b" + re.escape(k) + r"\b", q_lower) for k in ["opportunity", "opportunities", "internship", "internships", "jobs", "hackathon", "project", "courses", "find", "show me"]):
         dept_opps = [
             o for o in all_opportunities
             if any(t in (o.title + " " + o.domain + " " + (o.description or "")).lower() for t in dept_keywords[matched_dept])
@@ -472,7 +473,7 @@ INSTRUCTIONS:
                 f"### 📊 Skill Diagnostics for **{target_opp.title}** at **{target_opp.organization}**\n\n"
                 f"• **Candidate Readiness Score**: **{readiness_pct}%**\n"
                 f"• **Verified Matched Skills ({matched_count})**: `{matched_str}`\n"
-                f"• **Identified Skill Gaps ({missing_count})**: `{missing_str}`\n\n"
+                f"• **Identified Skill Gaps / Missing Skills ({missing_count})**: `{missing_str}`\n\n"
             )
 
             if gap.get("missing_skills"):
@@ -562,6 +563,14 @@ INSTRUCTIONS:
         actions.append({"label": "View Opportunity Details", "link": f"/opportunity/{mentioned_opp.id}"})
         actions.append({"label": "Prepare for Interview", "link": f"/opportunity/{mentioned_opp.id}"})
         return AIChatResponse(reply=reply, sources=sources, recommendedActions=actions, timestamp=now_iso)
+
+    if any(k in q_lower for k in ["tell me about", "details for", "information on", "about the internship", "about the job", "internship at", "job at", "role at"]):
+        return AIChatResponse(
+            reply="The requested opportunity or employer is currently unavailable in the SkillMatch verified partner database. Please explore our active partner opportunities on the Discover page.",
+            sources=[],
+            recommendedActions=[{"label": "Explore Discover", "link": "/discover"}],
+            timestamp=now_iso,
+        )
 
     # 11. General Grounded Assistant Welcome & Capabilities
     skills_list = [s.skill.name for s in profile.skills if s.skill] if profile and profile.skills else []

@@ -1,5 +1,5 @@
 import { Application } from '../types';
-import { apiFetch } from './apiClient';
+import { apiFetch, tokenStorage } from './apiClient';
 import { mockApplications, mockNotifications } from './mockData';
 
 export interface NotificationItem {
@@ -54,6 +54,9 @@ export function getStatusBadgeColor(status: string): string {
 
 class ApplicationService {
   async getApplications(): Promise<Application[]> {
+    if (!tokenStorage.get()) {
+      return mockApplications;
+    }
     try {
       const data = await apiFetch<any[]>('/applications');
       if (Array.isArray(data)) {
@@ -253,6 +256,9 @@ class ApplicationService {
   }
 
   async getNotifications(): Promise<NotificationItem[]> {
+    if (!tokenStorage.get()) {
+      return [];
+    }
     try {
       const data = await apiFetch<NotificationItem[]>('/notifications');
       if (Array.isArray(data)) {

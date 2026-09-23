@@ -1,5 +1,5 @@
 import { Opportunity } from '../types';
-import { apiFetch, userStorage } from './apiClient';
+import { apiFetch, tokenStorage, userStorage } from './apiClient';
 
 export interface UpcomingDeadline {
   id: string;
@@ -77,20 +77,22 @@ export interface DashboardData {
 
 class DashboardService {
   async getDashboard(): Promise<DashboardData | null> {
-    try {
-      const data = await apiFetch<DashboardData>('/dashboard');
-      if (data && data.studentName && data.studentName !== 'Alex' && data.studentName !== 'Alex Morgan') {
-        return data;
-      }
-      if (data && data.studentName) {
-        const stored = userStorage.get();
-        if (stored && stored.name) {
-          data.studentName = stored.name;
+    if (tokenStorage.get()) {
+      try {
+        const data = await apiFetch<DashboardData>('/dashboard');
+        if (data && data.studentName && data.studentName !== 'Alex' && data.studentName !== 'Alex Morgan') {
+          return data;
         }
-        return data;
+        if (data && data.studentName) {
+          const stored = userStorage.get();
+          if (stored && stored.name) {
+            data.studentName = stored.name;
+          }
+          return data;
+        }
+      } catch {
+        // Fallback
       }
-    } catch {
-      // Fallback
     }
 
     const stored = userStorage.get();

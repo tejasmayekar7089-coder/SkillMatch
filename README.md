@@ -209,6 +209,68 @@ uv run --directory backend pytest tests/test_resume_and_skills.py -v
 
 ---
 
-## 9. PS Requirement Matrix Reference
+## 9. Production Deployment
+
+SkillMatch uses a decoupled, high-performance production architecture:
+- **Frontend**: React 18 + Vite SPA deployed on **Vercel** with client-side routing rewrites (`vercel.json`).
+- **Backend**: FastAPI + Uvicorn deployed on a managed Python container host (**Render**, **Railway**, or **Docker/VPS**) running CPU-optimized ONNX FastEmbed neural embeddings.
+- **Database**: **PostgreSQL** (Neon, Supabase, Railway Postgres, or Render Postgres).
+
+### 9.1 Frontend Deployment (Vercel)
+1. Import your GitHub repository into [Vercel](https://vercel.com).
+2. Set the framework preset to **Vite**.
+3. Set the Root Directory to `./` (repository root).
+4. Configure Environment Variable:
+   - `VITE_API_BASE_URL`: `https://your-backend-service.onrender.com/api` (or your backend domain)
+5. Deploy. The included `vercel.json` ensures all deep SPA routes (`/discover`, `/dashboard`, `/opportunity/:id`, etc.) resolve to `index.html`.
+
+### 9.2 Backend Deployment (Render / Railway / Docker)
+
+#### Option A: 1-Click Render Blueprint
+1. In [Render](https://render.com), select **New +** -> **Blueprint**.
+2. Connect your repository. Render automatically reads `backend/render.yaml` to provision the PostgreSQL database and the FastAPI Web Service.
+3. Set `CORS_ORIGINS` to include your Vercel frontend URL (e.g. `https://skillmatch.vercel.app`).
+
+#### Option B: Railway / PaaS
+1. Create a new project in [Railway](https://railway.app) from your GitHub repo.
+2. Set Root Directory to `backend/`.
+3. Add a PostgreSQL plugin database.
+4. Set Environment Variables:
+   - `DATABASE_URL`: `${{Postgres.DATABASE_URL}}`
+   - `SECRET_KEY`: `your-secure-random-32-char-key`
+   - `ENVIRONMENT`: `production`
+   - `CORS_ORIGINS`: `https://your-frontend.vercel.app`
+5. Railway uses the included `backend/Procfile` (`web: uvicorn app.main:app --host 0.0.0.0 --port $PORT`).
+
+#### Option C: Docker Container
+```bash
+cd backend
+docker build -t skillmatch-backend .
+docker run -d -p 8000:8000 \
+  -e DATABASE_URL="postgresql://user:password@host:5432/dbname" \
+  -e SECRET_KEY="your-secret-key" \
+  -e CORS_ORIGINS="https://your-frontend.vercel.app" \
+  skillmatch-backend
+```
+
+### 9.3 Production Database Migration
+When connecting to a fresh PostgreSQL database:
+```bash
+cd backend
+# Run database migrations
+uv run alembic upgrade head
+
+# Seed initial opportunities and benchmarks
+uv run python migrate_db.py
+```
+
+### 9.4 Health & Monitoring
+- Backend Root Health: `GET https://your-backend.com/health`
+- Backend API Health: `GET https://your-backend.com/api/health`
+- Swagger Documentation: `GET https://your-backend.com/docs`
+
+---
+
+## 10. PS Requirement Matrix Reference
 
 The complete requirement traceability matrix mapping every problem statement specification to code and tests is available in [docs/PS_REQUIREMENT_MATRIX.md](docs/PS_REQUIREMENT_MATRIX.md).

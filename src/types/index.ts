@@ -73,6 +73,15 @@ export interface Opportunity {
   verified: boolean;
   eligibilityStatus: EligibilityStatus;
   eligibilityNote: string;
+  requiredSkills?: string[];
+  preferredSkills?: string[];
+  eligibilityRequirements?: string;
+  degreeRequirements?: string[];
+  branchRequirements?: string[];
+  academicYearRequirements?: string[];
+  experienceRequirements?: string;
+  applicationUrl?: string;
+  status?: string;
   verifiedBy?: string;
   featured?: boolean;
   imageBanner?: string;

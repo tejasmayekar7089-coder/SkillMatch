@@ -43,6 +43,45 @@ function saveStoredSavedIds(ids: Set<string>): void {
   } catch {}
 }
 
+function normalizeOpportunity(opp: any): Opportunity {
+  if (!opp) return opp;
+  const reqs = opp.requirements || {};
+  const technicalSkills = Array.isArray(reqs.technicalSkills) && reqs.technicalSkills.length > 0
+    ? reqs.technicalSkills
+    : (opp.requiredSkills || opp.required_skills || []).map((s: string) => ({
+        name: s,
+        level: 'Intermediate',
+        matched: Array.isArray(opp.matchedSkills) && opp.matchedSkills.includes(s),
+      }));
+
+  const academicCriteria = Array.isArray(reqs.academicCriteria) && reqs.academicCriteria.length > 0
+    ? reqs.academicCriteria
+    : [
+        opp.eligibilityRequirements || opp.eligibility_requirements,
+        ...(Array.isArray(opp.degreeRequirements) ? opp.degreeRequirements : Array.isArray(opp.degree_requirements) ? opp.degree_requirements : []).map((d: string) => `Degree: ${d}`),
+        ...(Array.isArray(opp.branchRequirements) ? opp.branchRequirements : Array.isArray(opp.branch_requirements) ? opp.branch_requirements : []).map((b: string) => `Branch: ${b}`),
+        ...(Array.isArray(opp.academicYearRequirements) ? opp.academicYearRequirements : Array.isArray(opp.academic_year_requirements) ? opp.academic_year_requirements : []).map((y: string) => `Year: ${y}`),
+      ].filter(Boolean);
+
+  return {
+    ...opp,
+    keyResponsibilities: Array.isArray(opp.keyResponsibilities)
+      ? opp.keyResponsibilities
+      : Array.isArray(opp.key_responsibilities)
+      ? opp.key_responsibilities
+      : [],
+    requirements: {
+      technicalSkills,
+      academicCriteria,
+      experienceCriteria: reqs.experienceCriteria || [],
+    },
+    stages: Array.isArray(opp.stages) ? opp.stages : [],
+    matchedSkills: Array.isArray(opp.matchedSkills) ? opp.matchedSkills : Array.isArray(opp.matched_skills) ? opp.matched_skills : [],
+    missingSkills: Array.isArray(opp.missingSkills) ? opp.missingSkills : Array.isArray(opp.missing_skills) ? opp.missing_skills : [],
+    requiredSkills: Array.isArray(opp.requiredSkills) ? opp.requiredSkills : Array.isArray(opp.required_skills) ? opp.required_skills : [],
+  };
+}
+
 export const opportunityService = {
   async getAllOpportunities(params?: SearchParams): Promise<Opportunity[]> {
     try {
@@ -57,26 +96,27 @@ export const opportunityService = {
       const qs = query.toString() ? `?${query.toString()}` : '';
       const data = await apiFetch<PaginatedOpportunities | Opportunity[]>(`/opportunities${qs}`);
       if (Array.isArray(data)) {
-        if (data.length > 0) return data;
+        if (data.length > 0) return data.map(normalizeOpportunity);
       } else if (data && Array.isArray(data.items)) {
-        return data.items;
+        return data.items.map(normalizeOpportunity);
       }
     } catch {
       // Fallback gracefully to mock data
     }
-    return mockOpportunities;
+    return mockOpportunities.map(normalizeOpportunity);
   },
 
   async getOpportunityById(id: string): Promise<Opportunity | undefined> {
     try {
       const opp = await apiFetch<Opportunity>(`/opportunities/${id}`);
       if (opp && opp.id) {
-        return opp;
+        return normalizeOpportunity(opp);
       }
     } catch {
       // Fallback
     }
-    return mockOpportunities.find((opp) => opp.id === id);
+    const found = mockOpportunities.find((opp) => opp.id === id);
+    return found ? normalizeOpportunity(found) : undefined;
   },
 
   async getOpportunitiesByCategory(category: string): Promise<Opportunity[]> {
@@ -86,14 +126,14 @@ export const opportunityService = {
       );
       const items = Array.isArray(data) ? data : data?.items;
       if (Array.isArray(items) && items.length > 0) {
-        return items;
+        return items.map(normalizeOpportunity);
       }
     } catch {}
 
     // Fallback
-    return mockOpportunities.filter(
-      (opp) => opp.category.toLowerCase() === category.toLowerCase()
-    );
+    return mockOpportunities
+      .filter((opp) => opp.category.toLowerCase() === category.toLowerCase())
+      .map(normalizeOpportunity);
   },
 
   async getCategories(): Promise<Array<{ id: string; label: string; count: number }>> {
@@ -134,7 +174,7 @@ export const opportunityService = {
       );
       const items = Array.isArray(data) ? data : data?.items;
       if (Array.isArray(items)) {
-        return items;
+        return items.map(normalizeOpportunity);
       }
     } catch {}
 
@@ -154,7 +194,7 @@ export const opportunityService = {
           (o.matchedSkills && o.matchedSkills.some((s) => s.toLowerCase().includes(q)))
       );
     }
-    return results;
+    return results.map(normalizeOpportunity);
   },
 
   // Admin Operations

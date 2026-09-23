@@ -3,6 +3,7 @@ import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { applicationService, NotificationItem } from '../../services/applicationService';
 import { authService, AuthUser, getSafeAvatarUrl } from '../../services/authService';
 import { profileService } from '../../services/profileService';
+import { tokenStorage } from '../../services/apiClient';
 
 interface HeaderProps {
   onToggleMobileMenu?: () => void;
@@ -19,12 +20,20 @@ export const Header: React.FC<HeaderProps> = ({ onToggleMobileMenu }) => {
   const isAdminRoute = location.pathname.startsWith('/admin');
 
   const loadNotifications = () => {
+    if (!tokenStorage.get()) {
+      setNotifications([]);
+      return;
+    }
     applicationService.getNotifications().then((data) => {
       if (data) setNotifications(data);
     });
   };
 
   useEffect(() => {
+    if (!tokenStorage.get()) {
+      setNotifications([]);
+      return;
+    }
     authService.fetchCurrentUser().then((user) => {
       if (user) {
         setCurrentUser(user);

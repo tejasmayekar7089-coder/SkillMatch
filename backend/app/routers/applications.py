@@ -77,46 +77,6 @@ def get_applications(
         .order_by(Application.created_at.desc())
         .all()
     )
-    if not apps:
-        opps = db.query(Opportunity).all()
-        if opps:
-            now_iso = datetime.now(timezone.utc).isoformat()
-            sample_statuses = [
-                (ApplicationStatus.DOING, "In Progress - Bench Work & Milestones", "Nov 15, 2026", 96, "Active technical progression"),
-                (ApplicationStatus.PENDING, "Under Review by Admissions / Committee", "Oct 30, 2026", 94, "Portfolio submitted"),
-                (ApplicationStatus.COMPLETED, "Milestones Completed & Verified", "Aug 20, 2026", 98, "Completed successfully"),
-                (ApplicationStatus.ISSUED, "Official Credential Issued", "Sep 10, 2026", 95, "Issued proctored certificate"),
-                (ApplicationStatus.APPLIED, "Application Submitted", "Dec 05, 2026", 92, "Queued in hiring pipeline"),
-            ]
-            for idx, (stat_val, stage_val, deadline_val, match_val, note_val) in enumerate(sample_statuses):
-                if idx < len(opps):
-                    target_opp = opps[idx]
-                    new_app = Application(
-                        student_profile_id=profile.id,
-                        opportunity_id=target_opp.id,
-                        status=stat_val,
-                        applied_date=datetime.now(timezone.utc).strftime("%b %d, %Y"),
-                        current_stage=stage_val,
-                        next_deadline=deadline_val,
-                        match_score=match_val,
-                        notes=note_val,
-                        status_history=[
-                            {
-                                "status": stat_val.value if hasattr(stat_val, "value") else str(stat_val),
-                                "stage": stage_val,
-                                "timestamp": now_iso,
-                                "notes": note_val,
-                            }
-                        ],
-                    )
-                    db.add(new_app)
-            db.commit()
-            apps = (
-                db.query(Application)
-                .filter(Application.student_profile_id == profile.id)
-                .order_by(Application.created_at.desc())
-                .all()
-            )
 
     opp_ids = [a.opportunity_id for a in apps]
     opp_dict = {

@@ -40,12 +40,20 @@ def create_application() -> FastAPI:
     # Mount /api routes
     app.include_router(api_router)
 
+    @app.get("/health", tags=["Health"])
+    def health():
+        return {
+            "status": "ok",
+            "service": settings.PROJECT_NAME,
+            "environment": settings.ENVIRONMENT,
+        }
+
     @app.get("/", tags=["Root"])
     def root():
         return {
             "message": "Welcome to the SkillMatch API",
             "docs": "/docs",
-            "health": "/api/health",
+            "health": "/health",
         }
 
     return app

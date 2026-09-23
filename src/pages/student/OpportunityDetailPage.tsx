@@ -404,7 +404,7 @@ export const OpportunityDetailPage: React.FC = () => {
               </p>
             </div>
 
-            {opportunity.keyResponsibilities.length > 0 && (
+            {opportunity.keyResponsibilities && opportunity.keyResponsibilities.length > 0 && (
               <div className="space-y-space-sm">
                 <h3 className="font-headline-sm text-headline-sm text-on-surface">Key Responsibilities</h3>
                 <ul className="space-y-space-xs font-body-md text-body-md text-on-surface-variant">
@@ -433,48 +433,67 @@ export const OpportunityDetailPage: React.FC = () => {
             </div>
 
             <div className="space-y-space-base">
-              <div>
-                <span className="font-label-xs text-label-xs uppercase tracking-wider text-outline block mb-space-xs">
-                  Technical Proficiency
-                </span>
-                <div className="flex flex-wrap gap-space-xs">
-                  {opportunity.requirements.technicalSkills.map((skill) => (
-                    <span
-                      key={skill.name}
-                      className={`inline-flex items-center gap-space-2xs px-space-sm py-space-2xs rounded-xl font-label-md text-label-sm font-medium ${
-                        skill.matched
-                          ? 'bg-surface-container-low text-primary'
-                          : 'bg-surface-container text-on-surface-variant'
-                      }`}
-                    >
+              {(opportunity.requirements?.technicalSkills?.length || (opportunity.requiredSkills && opportunity.requiredSkills.length > 0)) ? (
+                <div>
+                  <span className="font-label-xs text-label-xs uppercase tracking-wider text-outline block mb-space-xs">
+                    Technical Proficiency
+                  </span>
+                  <div className="flex flex-wrap gap-space-xs">
+                    {(opportunity.requirements?.technicalSkills?.length
+                      ? opportunity.requirements.technicalSkills
+                      : (opportunity.requiredSkills || []).map((s: string) => ({
+                          name: s,
+                          level: 'Intermediate',
+                          matched: (opportunity.matchedSkills || []).includes(s),
+                        }))
+                    ).map((skill: any) => (
                       <span
-                        className={`material-symbols-outlined text-[16px] ${
-                          skill.matched ? 'text-tertiary' : 'text-outline'
+                        key={skill.name}
+                        className={`inline-flex items-center gap-space-2xs px-space-sm py-space-2xs rounded-xl font-label-md text-label-sm font-medium ${
+                          skill.matched
+                            ? 'bg-surface-container-low text-primary'
+                            : 'bg-surface-container text-on-surface-variant'
                         }`}
                       >
-                        {skill.matched ? 'check' : 'info'}
+                        <span
+                          className={`material-symbols-outlined text-[16px] ${
+                            skill.matched ? 'text-tertiary' : 'text-outline'
+                          }`}
+                        >
+                          {skill.matched ? 'check' : 'info'}
+                        </span>
+                        {skill.name} ({skill.level})
                       </span>
-                      {skill.name} ({skill.level})
-                    </span>
-                  ))}
+                    ))}
+                  </div>
                 </div>
-              </div>
+              ) : null}
 
-              <div className="pt-space-base border-t border-outline-variant/20">
-                <span className="font-label-xs text-label-xs uppercase tracking-wider text-outline block mb-space-sm">
-                  Academic Eligibility Criteria
-                </span>
-                <div className="space-y-space-xs font-body-md text-body-md text-on-surface-variant">
-                  {opportunity.requirements.academicCriteria.map((crit, idx) => (
-                    <div key={idx} className="flex items-start gap-space-sm p-space-sm rounded-xl bg-surface-container-low">
-                      <span className="material-symbols-outlined text-tertiary text-[18px] mt-0.5 flex-shrink-0">
-                        verified
-                      </span>
-                      <span>{crit}</span>
-                    </div>
-                  ))}
+              {(opportunity.requirements?.academicCriteria?.length || opportunity.eligibilityRequirements || (opportunity.degreeRequirements && opportunity.degreeRequirements.length > 0)) ? (
+                <div className="pt-space-base border-t border-outline-variant/20">
+                  <span className="font-label-xs text-label-xs uppercase tracking-wider text-outline block mb-space-sm">
+                    Academic Eligibility Criteria
+                  </span>
+                  <div className="space-y-space-xs font-body-md text-body-md text-on-surface-variant">
+                    {(opportunity.requirements?.academicCriteria?.length
+                      ? opportunity.requirements.academicCriteria
+                      : [
+                          opportunity.eligibilityRequirements,
+                          ...(opportunity.degreeRequirements || []).map((d: string) => `Degree: ${d}`),
+                          ...(opportunity.branchRequirements || []).map((b: string) => `Branch: ${b}`),
+                          ...(opportunity.academicYearRequirements || []).map((y: string) => `Year: ${y}`),
+                        ].filter(Boolean) as string[]
+                    ).map((crit: string, idx: number) => (
+                      <div key={idx} className="flex items-start gap-space-sm p-space-sm rounded-xl bg-surface-container-low">
+                        <span className="material-symbols-outlined text-tertiary text-[18px] mt-0.5 flex-shrink-0">
+                          verified
+                        </span>
+                        <span>{crit}</span>
+                      </div>
+                    ))}
+                  </div>
                 </div>
-              </div>
+              ) : null}
             </div>
           </div>
 
