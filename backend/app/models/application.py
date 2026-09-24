@@ -25,7 +25,7 @@ class Application(Base, TimestampMixin):
 
     # 7 Application statuses
     status: Mapped[ApplicationStatus] = mapped_column(
-        Enum(ApplicationStatus, name="application_status", create_type=False),
+        Enum(ApplicationStatus, native_enum=False, length=50),
         default=ApplicationStatus.APPLIED,
         index=True,
         nullable=False,

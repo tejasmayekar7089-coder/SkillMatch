@@ -22,7 +22,7 @@ class Opportunity(Base, TimestampMixin):
 
     # 7 Required Categories strictly mapped to Enum
     category: Mapped[OpportunityCategory] = mapped_column(
-        Enum(OpportunityCategory, name="opportunity_category", create_type=False),
+        Enum(OpportunityCategory, native_enum=False, length=50),
         index=True,
         nullable=False,
     )
@@ -30,7 +30,7 @@ class Opportunity(Base, TimestampMixin):
     domain: Mapped[str] = mapped_column(String(100), index=True, nullable=False)
     location: Mapped[str] = mapped_column(String(150), index=True, nullable=False)
     mode: Mapped[WorkMode] = mapped_column(
-        Enum(WorkMode, name="work_mode", create_type=False),
+        Enum(WorkMode, native_enum=False, length=50),
         default=WorkMode.REMOTE,
         nullable=False,
     )
@@ -61,7 +61,7 @@ class Opportunity(Base, TimestampMixin):
 
     verified: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     eligibility_status: Mapped[EligibilityStatus] = mapped_column(
-        Enum(EligibilityStatus, name="eligibility_status", create_type=False),
+        Enum(EligibilityStatus, native_enum=False, length=50),
         default=EligibilityStatus.ELIGIBLE,
         nullable=False,
     )
@@ -71,7 +71,7 @@ class Opportunity(Base, TimestampMixin):
     image_banner: Mapped[Optional[str]] = mapped_column(String(500), nullable=True)
     # New status field for opportunity lifecycle
     status: Mapped[OpportunityStatus] = mapped_column(
-        Enum(OpportunityStatus, name="opportunity_status", create_type=False),
+        Enum(OpportunityStatus, native_enum=False, length=50),
         default=OpportunityStatus.UNMARKED,
         nullable=False,
     )
@@ -105,7 +105,7 @@ class OpportunitySkill(Base, TimestampMixin):
         String(36), ForeignKey("skills.id", ondelete="CASCADE"), index=True, nullable=False
     )
     level: Mapped[SkillLevel] = mapped_column(
-        Enum(SkillLevel, name="skill_level", create_type=False),
+        Enum(SkillLevel, native_enum=False, length=50),
         default=SkillLevel.BEGINNER,
         nullable=False,
     )

@@ -18,7 +18,7 @@ class Notification(Base, TimestampMixin):
     title: Mapped[str] = mapped_column(String(255), nullable=False)
     description: Mapped[str] = mapped_column(Text, nullable=False)
     type: Mapped[NotificationType] = mapped_column(
-        Enum(NotificationType, name="notification_type", create_type=False),
+        Enum(NotificationType, native_enum=False, length=50),
         default=NotificationType.SYSTEM,
         nullable=False,
     )

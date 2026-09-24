@@ -48,7 +48,7 @@ class StudentSkill(Base, TimestampMixin):
     proficiency: Mapped[str] = mapped_column(String(50), default="Beginner", nullable=False)
     experience_level: Mapped[Optional[str]] = mapped_column(String(50), nullable=True)
     level: Mapped[SkillLevel] = mapped_column(
-        Enum(SkillLevel, name="skill_level", create_type=False),
+        Enum(SkillLevel, native_enum=False, length=50),
         default=SkillLevel.BEGINNER,
         nullable=False,
     )

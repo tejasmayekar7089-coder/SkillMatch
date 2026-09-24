@@ -7,10 +7,28 @@ from app.database.database import engine
 from app.routers import api_router
 
 
+import logging
+import app.models  # Ensure all SQLAlchemy models are registered before create_all
+
+logger = logging.getLogger("skillmatch")
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Startup: ensure tables exist in development if not migrated yet
-    Base.metadata.create_all(bind=engine)
+    # Startup: ensure tables exist across SQLite and PostgreSQL
+    try:
+        Base.metadata.create_all(bind=engine)
+        from app.database.database import SessionLocal
+        from app.models.user import User
+        from app.seed import seed_database
+
+        with SessionLocal() as db:
+            admin_user = db.query(User).filter(User.email == "admin@skillmatch.edu").first()
+            if not admin_user:
+                logger.info("Initializing fresh database with seed data...")
+                seed_database()
+    except Exception as e:
+        logger.warning(f"Lifespan database startup check/seed warning: {e}")
     yield
     # Shutdown logic if any
     pass
