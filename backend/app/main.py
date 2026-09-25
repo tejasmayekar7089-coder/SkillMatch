@@ -29,6 +29,14 @@ async def lifespan(app: FastAPI):
                 seed_database()
     except Exception as e:
         logger.warning(f"Lifespan database startup check/seed warning: {e}")
+
+    # Warm up ML embedding model at startup so first request has zero cold start latency
+    try:
+        from app.ml.embeddings import get_embedding_model
+        get_embedding_model()
+    except Exception as e:
+        logger.warning(f"Lifespan embedding model warmup warning: {e}")
+
     yield
     # Shutdown logic if any
     pass
@@ -45,11 +53,10 @@ def create_application() -> FastAPI:
         lifespan=lifespan,
     )
 
-    # Configure CORS for frontend (React/Vite/Stitch)
+    # Configure CORS for frontend (configured origins from environment or local defaults)
     app.add_middleware(
         CORSMiddleware,
         allow_origins=settings.cors_origins_list,
-        allow_origin_regex=r"^https?://.*",
         allow_credentials=True,
         allow_methods=["*"],
         allow_headers=["*"],

@@ -1,8 +1,23 @@
 const TOKEN_STORAGE_KEY = 'skillmatch_token';
 const USER_STORAGE_KEY = 'skillmatch_user';
 
-export const API_BASE_URL =
-  (import.meta as any).env?.VITE_API_BASE_URL || '/api';
+export function resolveApiBaseUrl(): string {
+  const envUrl =
+    (import.meta as any).env?.VITE_API_URL ||
+    (import.meta as any).env?.VITE_API_BASE_URL;
+
+  if (!envUrl || typeof envUrl !== 'string' || envUrl.trim() === '') {
+    return '/api';
+  }
+
+  const cleanUrl = envUrl.trim().replace(/\/+$/, '');
+  if (!cleanUrl.endsWith('/api')) {
+    return `${cleanUrl}/api`;
+  }
+  return cleanUrl;
+}
+
+export const API_BASE_URL = resolveApiBaseUrl();
 
 export const tokenStorage = {
   get: (): string | null => {
