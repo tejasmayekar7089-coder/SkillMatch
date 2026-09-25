@@ -23,6 +23,8 @@ class Settings(BaseSettings):
         "http://localhost:3000",
     ]
 
+    FRONTEND_URL: Union[str, None] = None
+
     # AIML Matching Engine Weights (Sum to 1.0)
     MATCH_WEIGHT_SKILL: float = 0.40
     MATCH_WEIGHT_SEMANTIC: float = 0.25
@@ -43,11 +45,29 @@ class Settings(BaseSettings):
 
     @property
     def cors_origins_list(self) -> List[str]:
+        origins: List[str] = []
         if isinstance(self.CORS_ORIGINS, list):
-            return self.CORS_ORIGINS
-        if isinstance(self.CORS_ORIGINS, str):
-            return [origin.strip() for origin in self.CORS_ORIGINS.split(",") if origin.strip()]
-        return ["*"]
+            origins.extend(self.CORS_ORIGINS)
+        elif isinstance(self.CORS_ORIGINS, str):
+            origins.extend([origin.strip() for origin in self.CORS_ORIGINS.split(",") if origin.strip()])
+
+        if self.FRONTEND_URL and self.FRONTEND_URL.strip():
+            clean_front = self.FRONTEND_URL.strip().rstrip("/")
+            if clean_front not in origins:
+                origins.append(clean_front)
+
+        # Default allowed origins for local dev and the primary Vercel deployment
+        defaults = [
+            "http://localhost:5173",
+            "http://127.0.0.1:5173",
+            "http://localhost:3000",
+            "https://skill-match-o1b5.vercel.app",
+        ]
+        for d in defaults:
+            if d not in origins:
+                origins.append(d)
+
+        return origins
 
     @property
     def is_sqlite(self) -> bool:

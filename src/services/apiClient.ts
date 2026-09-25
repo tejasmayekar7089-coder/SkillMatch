@@ -19,6 +19,22 @@ export function resolveApiBaseUrl(): string {
 
 export const API_BASE_URL = resolveApiBaseUrl();
 
+export function buildApiUrl(endpoint: string): string {
+  if (endpoint.startsWith('http://') || endpoint.startsWith('https://')) {
+    return endpoint;
+  }
+  const base = API_BASE_URL.replace(/\/+$/, '');
+  let path = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
+
+  if (base.endsWith('/api') && path.startsWith('/api/')) {
+    path = path.slice(4);
+  } else if (base.endsWith('/api') && path === '/api') {
+    path = '';
+  }
+
+  return `${base}${path}`;
+}
+
 export const tokenStorage = {
   get: (): string | null => {
     try {
@@ -60,9 +76,7 @@ export async function apiFetch<T>(
   endpoint: string,
   options: RequestInit = {}
 ): Promise<T> {
-  const url = endpoint.startsWith('http')
-    ? endpoint
-    : `${API_BASE_URL}${endpoint.startsWith('/') ? '' : '/'}${endpoint}`;
+  const url = buildApiUrl(endpoint);
 
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',

@@ -20,7 +20,7 @@ services:
       - key: SECRET_KEY
         generateValue: true
       - key: CORS_ORIGINS
-        value: "https://skillmatch.vercel.app,http://localhost:5173"
+        value: "https://skill-match-o1b5.vercel.app,http://localhost:5173"
 
 databases:
   - name: skillmatch-db

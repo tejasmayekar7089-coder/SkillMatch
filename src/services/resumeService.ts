@@ -1,4 +1,4 @@
-import { API_BASE_URL, apiFetch, tokenStorage } from './apiClient';
+import { buildApiUrl, apiFetch, tokenStorage } from './apiClient';
 
 export interface ResumeExtractedData {
   name?: string;
@@ -80,7 +80,7 @@ export const resumeService = {
       headers['Authorization'] = `Bearer ${token}`;
     }
 
-    const response = await fetch(`${API_BASE_URL}/resume/upload`, {
+    const response = await fetch(buildApiUrl('/resume/upload'), {
       method: 'POST',
       body: formData,
       headers,
