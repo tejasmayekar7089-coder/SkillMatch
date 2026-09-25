@@ -81,17 +81,21 @@ export async function apiFetch<T>(
 
   if (!response.ok) {
     let errorDetail = `Request failed with status ${response.status}`;
-    try {
-      const errorJson = await response.json();
-      if (typeof errorJson.detail === 'string') {
-        errorDetail = errorJson.detail;
-      } else if (Array.isArray(errorJson.detail)) {
-        errorDetail = errorJson.detail.map((d: any) => d.msg || JSON.stringify(d)).join(', ');
-      } else if (errorJson.message) {
-        errorDetail = errorJson.message;
+    if (response.status === 405) {
+      errorDetail = `HTTP 405 Method Not Allowed: The API request to '${url}' was rejected by the static host. In production, ensure VITE_API_URL is configured in your Vercel Project Settings pointing to your deployed FastAPI backend.`;
+    } else {
+      try {
+        const errorJson = await response.json();
+        if (typeof errorJson.detail === 'string') {
+          errorDetail = errorJson.detail;
+        } else if (Array.isArray(errorJson.detail)) {
+          errorDetail = errorJson.detail.map((d: any) => d.msg || JSON.stringify(d)).join(', ');
+        } else if (errorJson.message) {
+          errorDetail = errorJson.message;
+        }
+      } catch {
+        // Use fallback errorDetail
       }
-    } catch {
-      // Use fallback errorDetail
     }
     throw new Error(errorDetail);
   }
